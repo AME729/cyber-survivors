@@ -1,0 +1,24 @@
+{
+  "name": "cyber-survivors-io",
+  "version": "1.0.0",
+  "description": "Cyber Survivors - Neon Protocol: Commercial Roguelite 2D Web Game built for high retention, ad monetization and easy deployment.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "roguelite",
+    "html5-game",
+    "vampire-survivors",
+    "canvas-game",
+    "monetization",
+    "flippa-ready"
+  ],
+  "author": "CyberSurvivors Studio",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

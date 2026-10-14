@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Survivors: Neon Protocol - Web Roguelite Game</title>
+  <meta name="description" content="Survivez à des hordes cybernétiques dans ce jeu roguelite d'action 2D ultra addictif.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="app-container">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="top-nav">
+      <div class="nav-brand">
+        <span>⚡</span> CYBER SURVIVORS
+      </div>
+
+      <nav class="nav-tabs">
+        <button id="btn-nav-menu" class="btn">🏠 ACCUEIL</button>
+        <button id="btn-nav-chars" class="btn">👤 HÉROS</button>
+        <button id="btn-nav-armory" class="btn">🦾 ARMURERIE</button>
+        <button id="btn-nav-shop" class="btn">💎 BOUTIQUE</button>
+        <button id="btn-nav-leaderboard" class="btn">🏆 CLASSEMENT</button>
+      </nav>
+
+      <div class="nav-stats">
+        <div class="credits-pill cyber-credits-val">0 ¢</div>
+        <button id="btn-toggle-sound" class="btn">🔊 SON</button>
+        <button id="btn-open-admin" class="btn btn-secondary" title="Tableau de bord propriétaire Flippa">⚙️ FLIPPA ADMIN</button>
+      </div>
+    </header>
+
+    <!-- SCREEN 1: MAIN MENU -->
+    <section id="screen-menu" class="app-screen">
+      <div class="hero-box">
+        <h1 class="hero-title">CYBER SURVIVORS</h1>
+        <p class="hero-tagline">Projet Neon Protocol — Survivez 15 minutes contre les légions d'IA renégates</p>
+
+        <div class="hero-features">
+          <div class="feature-pill">
+            <div class="feature-icon">⚔️</div>
+            <div class="feature-title">Action Roguelite 2D</div>
+            <div class="feature-desc">Des centaines d'ennemis, armes auto-guidées et boss épiques.</div>
+          </div>
+          <div class="feature-pill">
+            <div class="feature-icon">🦾</div>
+            <div class="feature-title">Métaprogression</div>
+            <div class="feature-desc">Collectez des puces pour débloquer des bonus permanents.</div>
+          </div>
+          <div class="feature-pill">
+            <div class="feature-icon">💰</div>
+            <div class="feature-title">Prêt pour Flippa</div>
+            <div class="feature-desc">Monétisation intégrée : pubs récompensées & boutique in-game.</div>
+          </div>
+        </div>
+
+        <button id="btn-play-game" class="btn btn-primary btn-huge">▶ JOUER MAINTENANT</button>
+
+        <p style="margin-top: 24px; font-size: 0.9rem; color: var(--text-muted);">
+          Contrôles : <b>ZQSD / Flèches</b> ou <b>Joystick Tactile</b> sur mobile.
+        </p>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: CHARACTER SELECT -->
+    <section id="screen-chars" class="app-screen hidden">
+      <h2 class="section-title">CHOIX DU HÉROS</h2>
+      <p class="section-desc">Sélectionnez votre unité d'intervention cybernétique ou débloquez-en de nouvelles.</p>
+      <div id="char-grid-container" class="grid-container"></div>
+    </section>
+
+    <!-- SCREEN 3: ARMORY (PERMANENT UPGRADES) -->
+    <section id="screen-armory" class="app-screen hidden">
+      <h2 class="section-title">ARMURERIE & TECHNOLOGIES</h2>
+      <p class="section-desc">Dépensez vos Crédits Cybernétiques récoltés en combat pour booster vos statistiques de base.</p>
+      <div id="armory-grid-container" class="grid-container"></div>
+    </section>
+
+    <!-- SCREEN 4: SHOP (IN-APP PURCHASES & MONETIZATION) -->
+    <section id="screen-shop" class="app-screen hidden">
+      <h2 class="section-title">BOUTIQUE DU SECTEUR NOIR</h2>
+      <p class="section-desc">Module de monétisation prêt à l'emploi (Stripe / PayPal ou monnaie virtuelle).</p>
+      <div id="shop-grid-container" class="grid-container"></div>
+    </section>
+
+    <!-- SCREEN 5: LEADERBOARD -->
+    <section id="screen-leaderboard" class="app-screen hidden">
+      <h2 class="section-title">MEILLEURS RUNNERS MONDIAUX</h2>
+      <p class="section-desc">Classement en temps réel connecté au backend Express et persistant.</p>
+      <div class="leaderboard-box">
+        <div id="leaderboard-list"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN 6: IN-GAME SCREEN -->
+    <section id="screen-game" class="app-screen hidden">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- IN-GAME HUD -->
+      <div class="game-hud">
+        <!-- XP Top Progress Bar -->
+        <div class="hud-xp-container">
+          <div id="hud-xp-bar"></div>
+        </div>
+
+        <!-- Timer & Stats Badge -->
+        <div class="hud-top-bar">
+          <div id="hud-timer" class="hud-timer">00:00</div>
+          <div id="hud-kills" class="hud-stat-pill">0 ☠️</div>
+          <div id="hud-credits" class="hud-stat-pill">0 ¢</div>
+          <button id="btn-hud-pause" class="btn" style="padding: 4px 10px; font-size: 0.8rem; margin-left: 8px;">⏸ PAUSE</button>
+        </div>
+
+        <!-- Boss Health Bar -->
+        <div id="hud-boss-bar-container" class="hud-boss-container hidden">
+          <div class="hud-boss-title">⚠️ ALERTE : CYBER TITAN OVERLORD ⚠️</div>
+          <div class="hud-boss-bar-box">
+            <div id="hud-boss-hp-bar"></div>
+            <span id="hud-boss-hp-text">1400 / 1400 PV</span>
+          </div>
+        </div>
+
+        <!-- Left Health & Equipment -->
+        <div class="hud-left-panel">
+          <div class="hud-hp-box">
+            <div id="hud-hp-bar"></div>
+            <span id="hud-hp-text">100 / 100 PV</span>
+          </div>
+          <div id="hud-level-text" style="font-weight: 800; color: var(--primary); font-size: 0.9rem;">NIV 1</div>
+          <div id="hud-weapons-list" class="hud-items-row"></div>
+        </div>
+
+        <!-- Tactical Minimap Radar -->
+        <div id="hud-radar-box">
+          <div class="radar-label">RADAR TACTIQUE</div>
+          <canvas id="radar-canvas" width="130" height="130"></canvas>
+        </div>
+
+        <!-- Virtual Joystick on Mobile -->
+        <div id="virtual-joystick" class="hidden">
+          <div id="joystick-knob"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL: LEVEL UP -->
+    <div id="modal-levelup" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">UPGRADE DU PROTOCOLE !</h3>
+        <p class="modal-desc">Choisissez une amélioration pour votre arsenal :</p>
+        <div id="levelup-cards-container" class="levelup-cards"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: CHEST REWARD -->
+    <div id="modal-chest" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title" style="color: #ffd700;">⭐ COFFRE CYBERNÉTIQUE TROUVÉ !</h3>
+        <p id="chest-reward-desc" class="modal-desc">Vous avez obtenu des récompenses rares !</p>
+        <button id="btn-close-chest" class="btn btn-gold">RÉCUPÉRER LE CONTENU</button>
+      </div>
+    </div>
+
+    <!-- MODAL: PAUSE -->
+    <div id="modal-pause" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">PARTIE EN PAUSE</h3>
+        <p class="modal-desc">Prenez votre souffle avant de replonger dans l'arène.</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="btn-resume-game" class="btn btn-primary">REPRENDRE</button>
+          <button id="btn-quit-to-menu" class="btn btn-secondary">QUITTER LE RUN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: GAME OVER -->
+    <div id="modal-gameover" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title" style="color: #ff0055;">SIGNAL PERDU — ÉCHEC</h3>
+        <p class="modal-desc">Votre processeur central a succombé aux vagues ennemies.</p>
+
+        <div class="admin-metrics-grid" style="margin-bottom: 24px;">
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Temps Survécu</div>
+            <div id="go-time" class="admin-metric-val">00:00</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Ennemis Éliminés</div>
+            <div id="go-kills" class="admin-metric-val">0</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Crédits Obtenus</div>
+            <div id="go-credits" class="admin-metric-val">0 ¢</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Score Final</div>
+            <div id="go-score" class="admin-metric-val">0</div>
+          </div>
+        </div>
+
+        <!-- Monetization Options -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+          <button id="btn-ad-revive" class="btn btn-primary">⚡ RÉANIMER LE JOUEUR (REGARDER PUB)</button>
+          <button id="btn-ad-double" class="btn btn-gold">💰 DOUBLER MES CRÉDITS (PUB)</button>
+        </div>
+
+        <!-- Submit to Leaderboard -->
+        <div style="display: flex; gap: 8px; margin-bottom: 18px;">
+          <input type="text" id="player-name-input" placeholder="Votre Pseudo" maxlength="12" style="background:#0b1020; border:1px solid var(--bg-card-border); color:#fff; padding:10px; border-radius:8px; flex-grow:1;">
+          <button id="btn-submit-score" class="btn btn-primary">PUBLIER SCORE</button>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="btn-restart-game" class="btn btn-primary">REJOUER</button>
+          <button id="btn-gameover-menu" class="btn">ACCUEIL</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: VICTORY -->
+    <div id="modal-victory" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title" style="color: #00ff88;">PROTOCOLE ACCOMPLI — VICTOIRE !</h3>
+        <p class="modal-desc">Félicitations ! Vous avez tenu 15 minutes et nettoyé le secteur !</p>
+
+        <div class="admin-metrics-grid" style="margin-bottom: 20px;">
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Ennemis Fraggés</div>
+            <div id="vic-kills" class="admin-metric-val">0</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Crédits de Victoire</div>
+            <div id="vic-credits" class="admin-metric-val">0 ¢</div>
+          </div>
+          <div class="admin-metric-card" style="grid-column: span 2;">
+            <div class="admin-metric-label">Score Suprême</div>
+            <div id="vic-score" class="admin-metric-val">0</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="btn-restart-game" class="btn btn-primary">REJOUER</button>
+          <button id="btn-victory-menu" class="btn">ACCUEIL</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: REWARDED AD SIMULATOR -->
+    <div id="ad-modal" class="modal-overlay hidden">
+      <div class="ad-modal-box">
+        <h3 id="ad-title" style="color: var(--primary); font-size: 1.1rem; margin-bottom: 8px;">PUBLICITÉ SPONSORISÉE</h3>
+        <div class="ad-video-mock">
+          <div style="font-size: 2.5rem; margin-bottom: 8px;">📺</div>
+          <div style="font-weight: 700;">DIFFUSION D'ANNONCE SPONSOR...</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Emplacement prêt pour Google AdSense / CrazyGames / Poki SDK</div>
+        </div>
+        <div style="font-weight: 700; color: var(--accent);">Récompense dans : <span id="ad-timer">4s</span></div>
+        <div class="ad-progress">
+          <div id="ad-progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CHECKOUT SIMULATOR -->
+    <div id="checkout-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">PASSERELLE DE PAIEMENT</h3>
+        <p class="modal-desc">Simulateur de transaction sécurisée prêt pour Stripe / PayPal :</p>
+        <div style="background: rgba(0,0,0,0.4); padding: 18px; border-radius: 8px; margin-bottom: 20px;">
+          <div id="checkout-pack-name" style="font-weight: 800; font-size: 1.2rem; color: var(--primary);">Pack</div>
+          <div id="checkout-pack-price" style="font-size: 1.8rem; font-weight: 900; margin-top: 6px;">$0.00</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+          * En mode démonstration / vente Flippa, ce bouton valide l'achat sans débiter de vraie carte bancaire.
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="btn-confirm-checkout" class="btn btn-gold">SIMULER LE PAIEMENT RÉUSSI</button>
+          <button id="btn-cancel-checkout" class="btn">ANNULER</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: FLIPPA ADMIN & VALUATION DASHBOARD -->
+    <div id="admin-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">TABLEAU DE BORD PROPRIÉTAIRE FLIPPA</h3>
+        <p class="modal-desc">Indicateurs de valorisation financière et outils d'administration du jeu.</p>
+
+        <div class="admin-metrics-grid">
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Impressions Pubs Totales</div>
+            <div id="admin-impressions" class="admin-metric-val">0</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Revenus Pubs Simulés</div>
+            <div id="admin-revenue" class="admin-metric-val">$0.00</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">eCPM Estimé</div>
+            <div id="admin-ecpm" class="admin-metric-val">$6.50</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Parties Jouées</div>
+            <div id="admin-games-played" class="admin-metric-val">0</div>
+          </div>
+        </div>
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" onclick="AdminDashboard.addCheatCredits(5000)">+5 000 CRÉDITS DE TEST</button>
+          <button class="btn btn-primary" onclick="AdminDashboard.toggleGodMode()">ACTIVER/DÉSACTIVER GOD MODE (INVINCIBLE)</button>
+          <button class="btn btn-secondary" onclick="AdminDashboard.spawnBossNow()">FAIRE APPARAÎTRE LE BOSS TITAN</button>
+          <button class="btn" onclick="AdminDashboard.triggerLevelUpCheat()">DÉCLENCHER UN LEVEL UP IMMÉDIAT</button>
+          <button class="btn" onclick="AdminDashboard.exportSave()">EXPORTER LA SAUVEGARDE (.JSON)</button>
+          <button class="btn btn-secondary" onclick="AdminDashboard.resetAllData()">RÉINITIALISER LES DONNÉES (USINE)</button>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <button id="btn-close-admin" class="btn">FERMER LE PANNEAU ADMIN</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT FILES -->
+  <script src="js/config.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/meta.js"></script>
+  <script src="js/monetization.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
