@@ -93,6 +93,9 @@ class Player {
     this.hp -= effectiveDamage;
     this.invulnerableTimer = 0.35; // 350ms iframes
     SoundSystem.playHit();
+    if (navigator.vibrate) {
+      try { navigator.vibrate(25); } catch (_) {}
+    }
     if (this.hp <= 0) {
       this.hp = 0;
     }
@@ -147,10 +150,11 @@ class Player {
     const len = Math.hypot(dx, dy);
     if (len > 0) {
       const currentSpeed = this.baseSpeed * this.bonusSpeed;
+      const intensity = input.joystickActive ? Math.min(1.0, len) : 1.0;
       const normalizedX = dx / len;
       const normalizedY = dy / len;
-      this.x += normalizedX * currentSpeed * dt;
-      this.y += normalizedY * currentSpeed * dt;
+      this.x += normalizedX * currentSpeed * intensity * dt;
+      this.y += normalizedY * currentSpeed * intensity * dt;
       this.angle = Math.atan2(normalizedY, normalizedX);
     }
 

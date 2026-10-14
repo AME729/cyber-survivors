@@ -34,17 +34,39 @@ class _AppUI {
     const target = document.getElementById(`screen-${screenName}`);
     if (target) target.classList.remove('hidden');
 
-    // Hide top navigation during active game for true full-screen experience
+    // Hide top navigation and mobile bottom nav during active game
     const topNav = document.querySelector('.top-nav');
     if (topNav) {
       topNav.style.display = (screenName === 'game') ? 'none' : 'flex';
     }
+
+    const mobNav = document.getElementById('mobile-bottom-nav');
+    if (mobNav) {
+      mobNav.style.display = (screenName === 'game') ? 'none' : 'flex';
+    }
+
+    // Update active state on mobile nav buttons
+    document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-screen') === screenName);
+    });
 
     this.currentScreen = screenName;
     this.updateCreditsDisplay();
   }
 
   setupNavigation() {
+    // Mobile Bottom Nav Buttons
+    document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetScreen = btn.getAttribute('data-screen');
+        if (targetScreen === 'chars') this.renderCharacterSelect();
+        if (targetScreen === 'armory') this.renderArmory();
+        if (targetScreen === 'shop') this.renderShop();
+        if (targetScreen === 'leaderboard') this.loadLeaderboard();
+        this.switchScreen(targetScreen);
+      });
+    });
+
     // Top Bar Buttons
     document.getElementById('btn-nav-menu')?.addEventListener('click', () => this.switchScreen('menu'));
     document.getElementById('btn-nav-chars')?.addEventListener('click', () => {
