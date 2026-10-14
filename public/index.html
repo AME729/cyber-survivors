@@ -2,9 +2,13 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Cyber Survivors: Neon Protocol - Web Roguelite Game</title>
   <meta name="description" content="Survivez à des hordes cybernétiques dans ce jeu roguelite d'action 2D ultra addictif.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#070913">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -140,10 +144,36 @@
 
         <!-- Virtual Joystick on Mobile -->
         <div id="virtual-joystick" class="hidden">
+          <div class="joystick-ring"></div>
           <div id="joystick-knob"></div>
+          <div id="joystick-pointer"></div>
         </div>
       </div>
     </section>
+
+    <!-- MOBILE BOTTOM NAVIGATION (Visible on Mobile screens < 768px) -->
+    <nav id="mobile-bottom-nav" class="mobile-bottom-nav">
+      <button class="mob-nav-btn active" data-screen="menu">
+        <span class="mob-icon">🏠</span>
+        <span class="mob-text">Accueil</span>
+      </button>
+      <button class="mob-nav-btn" data-screen="chars">
+        <span class="mob-icon">👤</span>
+        <span class="mob-text">Héros</span>
+      </button>
+      <button class="mob-nav-btn" data-screen="armory">
+        <span class="mob-icon">🦾</span>
+        <span class="mob-text">Armes</span>
+      </button>
+      <button class="mob-nav-btn" data-screen="shop">
+        <span class="mob-icon">💎</span>
+        <span class="mob-text">Boutique</span>
+      </button>
+      <button class="mob-nav-btn" data-screen="leaderboard">
+        <span class="mob-icon">🏆</span>
+        <span class="mob-text">Scores</span>
+      </button>
+    </nav>
 
     <!-- MODAL: LEVEL UP -->
     <div id="modal-levelup" class="modal-overlay hidden">

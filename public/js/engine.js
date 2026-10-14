@@ -66,8 +66,11 @@ class _GameEngine {
 
   resizeCanvas() {
     if (!this.canvas) return;
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    this.dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    this.canvas.width = Math.floor(window.innerWidth * this.dpr);
+    this.canvas.height = Math.floor(window.innerHeight * this.dpr);
+    this.canvas.style.width = `${window.innerWidth}px`;
+    this.canvas.style.height = `${window.innerHeight}px`;
   }
 
   setupKeyboard() {
@@ -124,30 +127,46 @@ class _GameEngine {
     let touchId = null;
     let originX = 0;
     let originY = 0;
-    const maxRadius = 45;
+    const maxRadius = 55;
 
-    window.addEventListener('touchstart', (e) => {
+    const onTouchStart = (e) => {
+      // Audio unlock on mobile touch
+      SoundSystem.resume();
+
       if (!this.isRunning || this.isPaused) return;
-      const touch = e.touches[0];
-      // Only trigger joystick on left side of screen
-      if (touch.clientX < window.innerWidth * 0.6) {
+
+      const target = e.target;
+      // Don't intercept button clicks or interactive UI elements
+      if (target.closest('button') || target.closest('.modal-content') || target.closest('.hud-top-bar') || target.closest('.mobile-bottom-nav')) {
+        return;
+      }
+
+      if (touchId === null && e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
         touchId = touch.identifier;
         originX = touch.clientX;
         originY = touch.clientY;
-        joyContainer.style.left = `${originX - 60}px`;
-        joyContainer.style.top = `${originY - 60}px`;
+
+        joyContainer.style.left = `${originX}px`;
+        joyContainer.style.top = `${originY}px`;
         joyContainer.classList.remove('hidden');
-        joyKnob.style.transform = `translate(0px, 0px)`;
+        joyKnob.style.transform = 'translate(0px, 0px)';
+
         this.input.joystickActive = true;
         this.input.joystickX = 0;
         this.input.joystickY = 0;
-      }
-    }, { passive: false });
 
-    window.addEventListener('touchmove', (e) => {
+        if (navigator.vibrate) {
+          try { navigator.vibrate(10); } catch (_) {}
+        }
+        e.preventDefault();
+      }
+    };
+
+    const onTouchMove = (e) => {
       if (!this.input.joystickActive) return;
-      for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
         if (touch.identifier === touchId) {
           const dx = touch.clientX - originX;
           const dy = touch.clientY - originY;
@@ -159,14 +178,18 @@ class _GameEngine {
           const knobY = Math.sin(angle) * clampedDist;
           joyKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
 
-          this.input.joystickX = knobX / maxRadius;
-          this.input.joystickY = knobY / maxRadius;
+          // Smooth analog intensity
+          const ratio = clampedDist / maxRadius;
+          this.input.joystickX = Math.cos(angle) * ratio;
+          this.input.joystickY = Math.sin(angle) * ratio;
+
+          e.preventDefault();
           break;
         }
       }
-    }, { passive: false });
+    };
 
-    const endTouch = (e) => {
+    const onTouchEnd = (e) => {
       for (let i = 0; i < e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === touchId) {
           this.input.joystickActive = false;
@@ -179,8 +202,10 @@ class _GameEngine {
       }
     };
 
-    window.addEventListener('touchend', endTouch);
-    window.addEventListener('touchcancel', endTouch);
+    window.addEventListener('touchstart', onTouchStart, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: false });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: false });
   }
 
   start(characterId) {
@@ -246,9 +271,9 @@ class _GameEngine {
     // Update Player
     this.player.update(dt, this.input, this);
 
-    // Camera following player
-    this.camera.x = this.player.x - this.canvas.width / 2;
-    this.camera.y = this.player.y - this.canvas.height / 2;
+    // Camera following player in logical CSS pixels
+    this.camera.x = this.player.x - window.innerWidth / 2;
+    this.camera.y = this.player.y - window.innerHeight / 2;
 
     // Screen Shake decay
     if (this.shakeIntensity > 0) {
@@ -494,12 +519,16 @@ class _GameEngine {
   render() {
     if (!this.ctx) return;
     const ctx = this.ctx;
+    const dpr = this.dpr || 1;
 
-    // Clear Screen
+    // Clear Screen across full physical buffer
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = '#080a10';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     ctx.save();
+    // Scale context so everything draws at high-DPI
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Camera offset with Screen Shake
     let camX = this.camera.x;
@@ -659,9 +688,9 @@ class _GameEngine {
   drawGrid(ctx) {
     const gridSize = 100;
     const startX = Math.floor(this.camera.x / gridSize) * gridSize;
-    const endX = startX + this.canvas.width + gridSize;
+    const endX = startX + window.innerWidth + gridSize;
     const startY = Math.floor(this.camera.y / gridSize) * gridSize;
-    const endY = startY + this.canvas.height + gridSize;
+    const endY = startY + window.innerHeight + gridSize;
 
     ctx.strokeStyle = '#121828';
     ctx.lineWidth = 1;
