@@ -12,9 +12,11 @@ class _AppUI {
     this.updateCreditsDisplay();
     this.setupNavigation();
     this.renderCharacterSelect();
+    this.renderMaps();
     this.renderArmory();
     this.renderShop();
     this.loadLeaderboard();
+    this.updateMenuSelectionSummary();
 
     // Check Daily reward notification silently
     const dailyStatus = MetaManager.claimDailyReward();
@@ -25,7 +27,7 @@ class _AppUI {
   }
 
   switchScreen(screenName) {
-    const screens = ['screen-menu', 'screen-chars', 'screen-armory', 'screen-shop', 'screen-leaderboard', 'screen-game'];
+    const screens = ['screen-menu', 'screen-chars', 'screen-maps', 'screen-armory', 'screen-shop', 'screen-leaderboard', 'screen-game'];
     screens.forEach(s => {
       const el = document.getElementById(s);
       if (el) el.classList.add('hidden');
@@ -52,6 +54,7 @@ class _AppUI {
 
     this.currentScreen = screenName;
     this.updateCreditsDisplay();
+    this.updateMenuSelectionSummary();
   }
 
   setupNavigation() {
@@ -60,6 +63,7 @@ class _AppUI {
       btn.addEventListener('click', () => {
         const targetScreen = btn.getAttribute('data-screen');
         if (targetScreen === 'chars') this.renderCharacterSelect();
+        if (targetScreen === 'maps') this.renderMaps();
         if (targetScreen === 'armory') this.renderArmory();
         if (targetScreen === 'shop') this.renderShop();
         if (targetScreen === 'leaderboard') this.loadLeaderboard();
@@ -73,6 +77,10 @@ class _AppUI {
       this.renderCharacterSelect();
       this.switchScreen('chars');
     });
+    document.getElementById('btn-nav-maps')?.addEventListener('click', () => {
+      this.renderMaps();
+      this.switchScreen('maps');
+    });
     document.getElementById('btn-nav-armory')?.addEventListener('click', () => {
       this.renderArmory();
       this.switchScreen('armory');
@@ -84,6 +92,21 @@ class _AppUI {
     document.getElementById('btn-nav-leaderboard')?.addEventListener('click', () => {
       this.loadLeaderboard();
       this.switchScreen('leaderboard');
+    });
+
+    // Menu Hero & Map Selection Quick Pills
+    document.getElementById('menu-selected-hero-pill')?.addEventListener('click', () => {
+      this.renderCharacterSelect();
+      this.switchScreen('chars');
+    });
+    document.getElementById('menu-selected-map-pill')?.addEventListener('click', () => {
+      this.renderMaps();
+      this.switchScreen('maps');
+    });
+
+    // HUD Zoom Toggle Button
+    document.getElementById('btn-hud-zoom')?.addEventListener('click', () => {
+      GameEngine.cycleZoom();
     });
 
     // Start Game from Menu
@@ -238,16 +261,93 @@ class _AppUI {
         MetaManager.data.selectedCharacter = char.id;
         MetaManager.saveData();
         this.renderCharacterSelect();
+        this.updateMenuSelectionSummary();
+        showToast(`Héros sélectionné : ${char.name}`, 'info');
       });
 
       card.querySelector('.btn-unlock-char')?.addEventListener('click', () => {
         if (MetaManager.unlockCharacter(char.id, char.price)) {
           this.selectedCharId = char.id;
+          MetaManager.data.selectedCharacter = char.id;
+          MetaManager.saveData();
           this.updateCreditsDisplay();
           this.renderCharacterSelect();
-          alert(`Héros ${char.name} débloqué avec succès !`);
+          this.updateMenuSelectionSummary();
+          showToast(`Héros ${char.name} débloqué avec succès !`, 'success');
         } else {
-          alert(`Crédits insuffisants. Il vous manque ${char.price - MetaManager.data.credits} ¢.`);
+          showToast(`Crédits insuffisants. Il vous manque ${(char.price - MetaManager.data.credits).toLocaleString()} ¢.`, 'error');
+        }
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  updateMenuSelectionSummary() {
+    const curHeroId = MetaManager.data.selectedCharacter || 'ninja';
+    const curHero = CONFIG.CHARACTERS.find(c => c.id === curHeroId) || CONFIG.CHARACTERS[0];
+    const heroEl = document.getElementById('summary-hero-name');
+    if (heroEl) heroEl.textContent = `${curHero.name} ${curHero.icon}`;
+
+    const curMapId = MetaManager.data.selectedMap || 'map_tokyo';
+    const curMap = CONFIG.MAPS.find(m => m.id === curMapId) || CONFIG.MAPS[0];
+    const mapEl = document.getElementById('summary-map-name');
+    if (mapEl) mapEl.textContent = `${curMap.name} ${curMap.icon}`;
+  }
+
+  renderMaps() {
+    const container = document.getElementById('maps-grid-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const selectedMapId = MetaManager.data.selectedMap || 'map_tokyo';
+
+    CONFIG.MAPS.forEach(map => {
+      const isUnlocked = (MetaManager.data.unlockedMaps || []).includes(map.id) || map.price === 0;
+      const isSelected = selectedMapId === map.id;
+
+      const card = document.createElement('div');
+      card.className = `map-card ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
+      card.style.borderColor = isSelected ? (map.borderColor || 'var(--primary)') : 'var(--bg-card-border)';
+
+      card.innerHTML = `
+        <div class="map-header-banner" style="background: linear-gradient(135deg, ${map.bgColor}, #121828); border-bottom: 2px solid ${map.borderColor};">
+          <div class="map-icon">${map.icon}</div>
+          <div class="map-badge" style="border-color:${map.borderColor}; color:${map.borderColor};">${map.subtitle}</div>
+        </div>
+        <div class="map-body">
+          <div class="map-title" style="color:${map.borderColor}">${map.name}</div>
+          <div class="map-boss-row">
+            <span class="boss-label">☠️ Boss Titan :</span>
+            <span class="boss-name" style="color:${map.bossColor || '#ff0055'}">${map.bossName}</span>
+          </div>
+          <div class="map-desc">${map.description}</div>
+          
+          <div class="map-action-box">
+            ${isUnlocked
+              ? `<button class="btn btn-primary btn-select-map" data-id="${map.id}" style="${isSelected ? `background:${map.borderColor}; border-color:${map.borderColor}; color:#000; font-weight:800;` : ''}">${isSelected ? 'SÉLECTIONNÉ ✓' : 'SÉLECTIONNER'}</button>`
+              : `<button class="btn btn-gold btn-unlock-map" data-id="${map.id}" data-cost="${map.price}">DÉBLOQUER (${map.price.toLocaleString()} ¢)</button>`
+            }
+          </div>
+        </div>
+      `;
+
+      card.querySelector('.btn-select-map')?.addEventListener('click', () => {
+        MetaManager.selectMap(map.id);
+        this.renderMaps();
+        this.updateMenuSelectionSummary();
+        showToast(`Secteur activé : ${map.name}`, 'info');
+      });
+
+      card.querySelector('.btn-unlock-map')?.addEventListener('click', () => {
+        if (MetaManager.unlockMap(map.id, map.price)) {
+          MetaManager.selectMap(map.id);
+          this.renderMaps();
+          this.updateCreditsDisplay();
+          this.updateMenuSelectionSummary();
+          showToast(`Carte ${map.name} débloquée avec succès !`, 'success');
+        } else {
+          showToast(`Crédits insuffisants. Il vous manque ${(map.price - MetaManager.data.credits).toLocaleString()} ¢.`, 'error');
         }
       });
 
@@ -380,15 +480,16 @@ class _AppUI {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, score, kills, timeSurvived: timeFormatted, character })
       });
-      alert("Score publié avec succès dans le classement mondial !");
+      showToast("Score publié avec succès dans le classement mondial !", "success");
       const submitBtn = document.getElementById('btn-submit-score');
       if (submitBtn) submitBtn.disabled = true;
     } catch (e) {
-      alert("Enregistré localement !");
+      showToast("Score enregistré localement !", "info");
     }
   }
 
   startGame() {
+    this.selectedCharId = MetaManager.data.selectedCharacter || this.selectedCharId || 'ninja';
     this.switchScreen('game');
     GameEngine.start(this.selectedCharId);
   }

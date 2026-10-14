@@ -23,6 +23,8 @@ class _MetaManager {
       gamesPlayed: 0,
       unlockedCharacters: ['ninja'],
       selectedCharacter: 'ninja',
+      unlockedMaps: ['map_tokyo'],
+      selectedMap: 'map_tokyo',
       upgrades: upgrades,
       isVip: false,
       lastDailyReward: 0
@@ -39,6 +41,9 @@ class _MetaManager {
         return {
           ...defaults,
           ...parsed,
+          unlockedCharacters: parsed.unlockedCharacters || defaults.unlockedCharacters,
+          unlockedMaps: parsed.unlockedMaps || defaults.unlockedMaps,
+          selectedMap: parsed.selectedMap || defaults.selectedMap,
           upgrades: { ...defaults.upgrades, ...(parsed.upgrades || {}) }
         };
       }
@@ -99,6 +104,25 @@ class _MetaManager {
     if (this.data.unlockedCharacters.includes(charId)) return true;
     if (this.spendCredits(cost)) {
       this.data.unlockedCharacters.push(charId);
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
+
+  unlockMap(mapId, cost) {
+    if (this.data.unlockedMaps.includes(mapId)) return true;
+    if (this.spendCredits(cost)) {
+      this.data.unlockedMaps.push(mapId);
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
+
+  selectMap(mapId) {
+    if (this.data.unlockedMaps.includes(mapId)) {
+      this.data.selectedMap = mapId;
       this.saveData();
       return true;
     }

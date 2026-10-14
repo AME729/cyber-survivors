@@ -962,20 +962,27 @@ body, html {
   }
 
   #hud-radar-box {
-    width: 105px;
-    height: 125px;
-    bottom: 15px;
-    right: 15px;
+    width: 95px;
+    height: 115px;
+    top: 55px;
+    right: 10px;
+    bottom: auto !important;
     padding: 4px;
+    background: rgba(6, 10, 20, 0.75);
   }
 
   #radar-canvas {
-    width: 95px;
-    height: 95px;
+    width: 85px;
+    height: 85px;
   }
 
   .radar-label {
     font-size: 0.55rem;
+  }
+
+  #btn-hud-zoom {
+    font-size: 0.72rem;
+    padding: 3px 7px;
   }
 
   /* Modals on mobile */
@@ -1167,4 +1174,156 @@ body, html {
 .rarity-tag.common { background: rgba(0, 255, 255, 0.2); color: var(--primary); }
 .rarity-tag.rare { background: rgba(180, 0, 255, 0.25); color: #c084fc; }
 .rarity-tag.epic { background: rgba(255, 215, 0, 0.25); color: #ffd700; }
+
+/* Menu Hero & Map Quick Selection Summary Pills */
+.menu-selection-summary {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.selection-pill {
+  background: rgba(10, 20, 36, 0.85);
+  border: 1px solid var(--primary);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.15);
+}
+
+.selection-pill:hover, .selection-pill:active {
+  border-color: #ff00ff;
+  box-shadow: 0 0 18px rgba(255, 0, 255, 0.4);
+  transform: scale(1.04);
+}
+
+.pill-label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pill-val {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+/* Map Battle Sector Cards */
+.map-card {
+  background: var(--bg-card);
+  border: 2px solid var(--bg-card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 255, 255, 0.15);
+}
+
+.map-card.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.35);
+}
+
+.map-card.locked {
+  filter: grayscale(0.25);
+  opacity: 0.88;
+}
+
+.map-header-banner {
+  padding: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.map-icon {
+  font-size: 2.8rem;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.35));
+}
+
+.map-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.map-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.map-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.map-boss-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.boss-label {
+  color: var(--text-muted);
+}
+
+.boss-name {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.map-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 18px;
+  flex: 1;
+}
+
+.map-action-box {
+  margin-top: auto;
+}
+
+/* In-game HUD Zoom button styling */
+#btn-hud-zoom {
+  background: rgba(0, 255, 255, 0.12);
+  border: 1px solid var(--primary);
+  color: #fff;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#btn-hud-zoom:active {
+  transform: scale(0.92);
+  background: var(--primary);
+  color: #000;
+}
 
