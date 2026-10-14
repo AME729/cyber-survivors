@@ -7,6 +7,7 @@
 
 - **Titre de l'annonce (Headline)** :  
   `Cyber Survivors .io - Turnkey 2D Action Roguelite Web Game (Vampire Survivors Style) with Built-In Monetization & Admin Dashboard`
+- **Lien Démo en Ligne (Live Demo URL)** : `https://ame729.github.io/cyber-survivors/`
 - **Catégorie Flippa** : Websites > Starter Sites / Entertainment & Gaming / Turnkey Web Apps
 - **Modèle de Revenu** : Advertising (Rewarded Video Ads, AdSense) + In-App Purchases (VIP Pass & Virtual Credits)
 - **Fourchette de Prix Recommandée** :

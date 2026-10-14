@@ -2,6 +2,9 @@
 > **Commercial HTML5 / 2D Roguelite Web Game**  
 > Turnkey browser game package built for high retention, ad monetization, and resale on Flippa.
 
+🎮 **Jouer en ligne (Live Demo)** : [https://ame729.github.io/cyber-survivors/](https://ame729.github.io/cyber-survivors/)  
+📁 **Dépôt GitHub** : [https://github.com/AME729/cyber-survivors](https://github.com/AME729/cyber-survivors)
+
 ---
 
 ## 🎮 Aperçu du Jeu (Game Overview)
