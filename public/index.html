@@ -24,6 +24,7 @@
       <nav class="nav-tabs">
         <button id="btn-nav-menu" class="btn">🏠 ACCUEIL</button>
         <button id="btn-nav-chars" class="btn">👤 HÉROS</button>
+        <button id="btn-nav-maps" class="btn">🗺️ CARTES</button>
         <button id="btn-nav-armory" class="btn">🦾 ARMURERIE</button>
         <button id="btn-nav-shop" class="btn">💎 BOUTIQUE</button>
         <button id="btn-nav-leaderboard" class="btn">🏆 CLASSEMENT</button>
@@ -62,34 +63,51 @@
 
         <button id="btn-play-game" class="btn btn-primary btn-huge">▶ JOUER MAINTENANT</button>
 
-        <p style="margin-top: 24px; font-size: 0.9rem; color: var(--text-muted);">
-          Contrôles : <b>ZQSD / Flèches</b> ou <b>Joystick Tactile</b> sur mobile.
+        <!-- Current Selection Quick Switch -->
+        <div class="menu-selection-summary">
+          <div id="menu-selected-hero-pill" class="selection-pill" title="Changer de Héros">
+            <span class="pill-label">HÉROS :</span> <span id="summary-hero-name" class="pill-val">Cyber Ninja ⚡</span>
+          </div>
+          <div id="menu-selected-map-pill" class="selection-pill" title="Changer de Secteur">
+            <span class="pill-label">CARTE :</span> <span id="summary-map-name" class="pill-val">Néo-Tokyo 🏙️</span>
+          </div>
+        </div>
+
+        <p style="margin-top: 18px; font-size: 0.9rem; color: var(--text-muted);">
+          Contrôles : <b>ZQSD / Flèches</b> ou <b>Joystick Tactile Dynamique</b> sur mobile.
         </p>
       </div>
     </section>
 
-    <!-- SCREEN 2: CHARACTER SELECT -->
+    <!-- SCREEN 2: CHARACTER SELECT (SKINS) -->
     <section id="screen-chars" class="app-screen hidden">
-      <h2 class="section-title">CHOIX DU HÉROS</h2>
-      <p class="section-desc">Sélectionnez votre unité d'intervention cybernétique ou débloquez-en de nouvelles.</p>
+      <h2 class="section-title">CHOIX DU HÉROS & SKINS</h2>
+      <p class="section-desc">Sélectionnez votre unité d'intervention ou débloquez les héros Fantôme, Zombie et Ogre.</p>
       <div id="char-grid-container" class="grid-container"></div>
     </section>
 
-    <!-- SCREEN 3: ARMORY (PERMANENT UPGRADES) -->
+    <!-- SCREEN 3: MAPS / BATTLE SECTORS -->
+    <section id="screen-maps" class="app-screen hidden">
+      <h2 class="section-title">SECTEURS DE COMBAT & MAPS</h2>
+      <p class="section-desc">Choisissez votre zone de combat. Débloquez les cartes hantées, laboratoires toxiques et forges volcaniques.</p>
+      <div id="maps-grid-container" class="grid-container"></div>
+    </section>
+
+    <!-- SCREEN 4: ARMORY (PERMANENT UPGRADES) -->
     <section id="screen-armory" class="app-screen hidden">
       <h2 class="section-title">ARMURERIE & TECHNOLOGIES</h2>
       <p class="section-desc">Dépensez vos Crédits Cybernétiques récoltés en combat pour booster vos statistiques de base.</p>
       <div id="armory-grid-container" class="grid-container"></div>
     </section>
 
-    <!-- SCREEN 4: SHOP (IN-APP PURCHASES & MONETIZATION) -->
+    <!-- SCREEN 5: SHOP (IN-APP PURCHASES & MONETIZATION) -->
     <section id="screen-shop" class="app-screen hidden">
       <h2 class="section-title">BOUTIQUE DU SECTEUR NOIR</h2>
       <p class="section-desc">Module de monétisation prêt à l'emploi (Stripe / PayPal ou monnaie virtuelle).</p>
       <div id="shop-grid-container" class="grid-container"></div>
     </section>
 
-    <!-- SCREEN 5: LEADERBOARD -->
+    <!-- SCREEN 6: LEADERBOARD -->
     <section id="screen-leaderboard" class="app-screen hidden">
       <h2 class="section-title">MEILLEURS RUNNERS MONDIAUX</h2>
       <p class="section-desc">Classement en temps réel connecté au backend Express et persistant.</p>
@@ -98,7 +116,7 @@
       </div>
     </section>
 
-    <!-- SCREEN 6: IN-GAME SCREEN -->
+    <!-- SCREEN 7: IN-GAME SCREEN -->
     <section id="screen-game" class="app-screen hidden">
       <canvas id="game-canvas"></canvas>
 
@@ -114,7 +132,8 @@
           <div id="hud-timer" class="hud-timer">00:00</div>
           <div id="hud-kills" class="hud-stat-pill">0 ☠️</div>
           <div id="hud-credits" class="hud-stat-pill">0 ¢</div>
-          <button id="btn-hud-pause" class="btn" style="padding: 4px 10px; font-size: 0.8rem; margin-left: 8px;">⏸ PAUSE</button>
+          <button id="btn-hud-zoom" class="btn" style="padding: 4px 10px; font-size: 0.8rem; margin-left: 6px;" title="Changer le champ de vision">🔍 0.6x</button>
+          <button id="btn-hud-pause" class="btn" style="padding: 4px 10px; font-size: 0.8rem; margin-left: 6px;">⏸ PAUSE</button>
         </div>
 
         <!-- Boss Health Bar -->
@@ -160,6 +179,10 @@
       <button class="mob-nav-btn" data-screen="chars">
         <span class="mob-icon">👤</span>
         <span class="mob-text">Héros</span>
+      </button>
+      <button class="mob-nav-btn" data-screen="maps">
+        <span class="mob-icon">🗺️</span>
+        <span class="mob-text">Cartes</span>
       </button>
       <button class="mob-nav-btn" data-screen="armory">
         <span class="mob-icon">🦾</span>

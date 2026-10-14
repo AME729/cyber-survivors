@@ -271,6 +271,41 @@ class Player {
       ctx.globalAlpha = 0.4;
     }
 
+    // Custom Skin Visual Effects
+    if (this.id === 'phantom') {
+      ctx.globalAlpha = 0.85;
+      // Spectral Ethereal Halo
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = '#c840ff';
+      ctx.strokeStyle = '#e066ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius + 6 + Math.sin(Date.now() * 0.008) * 3, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (this.id === 'zombie') {
+      // Toxic Mutagenic Aura
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = '#39ff14';
+      ctx.strokeStyle = 'rgba(57, 255, 20, 0.6)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius + 4, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (this.id === 'ogre') {
+      // Molten Volcanic Spikes
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = '#ff3300';
+      ctx.strokeStyle = '#ff6600';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius + 3, 0, Math.PI * 2);
+      ctx.stroke();
+      // Horn spikes
+      ctx.fillStyle = '#ffcc00';
+      ctx.fillRect(-this.radius - 4, -4, 4, 8);
+      ctx.fillRect(this.radius, -4, 4, 8);
+    }
+
     // Outer Neon Glow Ring
     ctx.shadowBlur = 15;
     ctx.shadowColor = this.charConf.color;
@@ -281,7 +316,7 @@ class Player {
     ctx.stroke();
 
     // Body Fill
-    ctx.fillStyle = '#0a0d18';
+    ctx.fillStyle = this.id === 'phantom' ? '#140824' : (this.id === 'zombie' ? '#081a0b' : (this.id === 'ogre' ? '#240803' : '#0a0d18'));
     ctx.fill();
 
     // Direction Cannon
@@ -324,12 +359,13 @@ class Player {
 }
 
 class Enemy {
-  constructor(typeKey, x, y) {
+  constructor(typeKey, x, y, theme = 'cyber', customName = null) {
     const conf = CONFIG.ENEMIES[typeKey] || CONFIG.ENEMIES.drone;
     this.conf = conf;
     this.typeKey = typeKey;
     this.x = x;
     this.y = y;
+    this.theme = theme;
     this.radius = conf.radius;
     this.hp = conf.hp;
     this.maxHp = conf.hp;
@@ -338,8 +374,25 @@ class Enemy {
     this.xpValue = conf.xp;
     this.color = conf.color;
     this.isBoss = conf.isBoss || false;
+    this.customName = customName;
     this.flashTimer = 0;
     this.isDead = false;
+
+    // Adapt color and stats to map theme
+    if (this.theme === 'phantom') {
+      this.color = this.isBoss ? '#c840ff' : (typeKey === 'drone' ? '#e088ff' : '#a832d6');
+      this.speed *= 1.15; // Phantoms are faster and elusive
+    } else if (this.theme === 'zombie') {
+      this.color = this.isBoss ? '#39ff14' : (typeKey === 'drone' ? '#66ff44' : '#15803d');
+      this.hp = Math.floor(this.hp * 1.25); // Zombies are tankier
+      this.maxHp = this.hp;
+    } else if (this.theme === 'ogre') {
+      this.color = this.isBoss ? '#ff3300' : (typeKey === 'drone' ? '#ff6600' : '#b91c1c');
+      this.damage = Math.floor(this.damage * 1.3); // Ogres hit harder
+      this.hp = Math.floor(this.hp * 1.4);
+      this.maxHp = this.hp;
+      this.radius = Math.floor(this.radius * 1.15);
+    }
   }
 
   takeDamage(amount, engine, critChance = 0, critMult = 1.5) {
@@ -450,6 +503,28 @@ class Enemy {
     }
     ctx.closePath();
     ctx.fill();
+
+    // Themed enemy embellishments
+    if (this.theme === 'phantom') {
+      // Ghost glowing eyes
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-this.radius * 0.35, -this.radius * 0.2, 3, 3);
+      ctx.fillRect(this.radius * 0.15, -this.radius * 0.2, 3, 3);
+    } else if (this.theme === 'zombie') {
+      // Toxic pustules
+      ctx.fillStyle = '#bbf7d0';
+      ctx.beginPath();
+      ctx.arc(this.radius * 0.3, this.radius * 0.2, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (this.theme === 'ogre') {
+      // Magma core & horn tips
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(-2, -this.radius - 3, 4, 4);
+      ctx.fillStyle = '#ff4400';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Health bar for Boss or tough enemies
     if (this.isBoss || this.hp < this.maxHp) {

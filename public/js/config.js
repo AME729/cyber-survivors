@@ -22,12 +22,12 @@ const CONFIG = {
     regenRate: 0.2 // hp/sec
   },
 
-  // Playable Characters
+  // Playable Characters & Skins
   CHARACTERS: [
     {
       id: 'ninja',
       name: 'Cyber Ninja (Kael)',
-      title: 'Fast, Agile & Lethal',
+      title: 'Rapide, Agile & Létal',
       icon: '⚡',
       color: '#00ffff',
       unlocked: true,
@@ -39,7 +39,7 @@ const CONFIG = {
     {
       id: 'mech',
       name: 'Heavy Mech (Titan-04)',
-      title: 'Heavy Armor & Orbital Defense',
+      title: 'Blindage Lourd & Bouclier',
       icon: '🛡️',
       color: '#ff9900',
       unlocked: false,
@@ -49,16 +49,128 @@ const CONFIG = {
       description: 'Résistance colossale et blindage renforcé. Arme de départ : Bouclier Orbital.'
     },
     {
+      id: 'phantom',
+      name: 'Spectre Fantôme (Ghost)',
+      title: 'Infiltration Éthérée & Esquive',
+      icon: '👻',
+      color: '#c840ff',
+      unlocked: false,
+      price: 2500,
+      startingWeapon: 'emp_aura',
+      bonus: { speed: 1.25, critChance: 0.15, maxHp: 85, cooldownReduction: 0.10 },
+      description: 'Entité spectrale rapide comme l’éclair avec décharge IEM d’éther et aura de brume spectrale.'
+    },
+    {
       id: 'netrunner',
       name: 'Netrunner (Nyx)',
-      title: 'Hacking & Chain Lightning',
+      title: 'Hacking & Surcharge Électrique',
       icon: '🔮',
       color: '#ff00ff',
       unlocked: false,
-      price: 3000,
+      price: 3500,
       startingWeapon: 'chain_lightning',
       bonus: { cooldownReduction: 0.15, damageMult: 1.1, pickupRadius: 1.3 },
       description: 'Spécialiste de la surcharge électrique et temps de recharge réduit. Arme de départ : Foudre en Chaîne.'
+    },
+    {
+      id: 'zombie',
+      name: 'Bio-Zombie (Patient Zéro)',
+      title: 'Nanovirus & Auto-Régénération',
+      icon: '🧟',
+      color: '#39ff14',
+      unlocked: false,
+      price: 4500,
+      startingWeapon: 'orbital_shield',
+      bonus: { maxHp: 190, regenRate: 3.5, speed: 0.90, pickupRadius: 1.25 },
+      description: 'Cyborg infecté ultra-résistant doté d’une régénération frénétique (+3.5 PV/sec) et bouclier d’acide.'
+    },
+    {
+      id: 'ogre',
+      name: 'Cyber Ogre Broyeur (Goliath)',
+      title: 'Colosse Titan & Blindage Titanesque',
+      icon: '👹',
+      color: '#ff3300',
+      unlocked: false,
+      price: 6000,
+      startingWeapon: 'drone_turret',
+      bonus: { maxHp: 250, armor: 6, damageMult: 1.35, speed: 0.78 },
+      description: 'Dévastateur d’acier et de magma volcanique. Armure invincible (+6) et tourelles de siège automatiques.'
+    }
+  ],
+
+  // Maps / Battle Sectors (Achetables et Déblocables)
+  MAPS: [
+    {
+      id: 'map_tokyo',
+      name: 'Néo-Tokyo Cyber Grid',
+      subtitle: 'Secteur Alpha (Standard)',
+      icon: '🏙️',
+      price: 0,
+      unlocked: true,
+      description: 'L’arène cyberpunk classique sous la pluie de données néon. Vagues équilibrées de drones éclaireurs et cyborgs.',
+      bgColor: '#070913',
+      gridColor: '#121828',
+      gridHighlight: '#00ffff',
+      borderColor: '#00ffff',
+      particleColor: '#00ffff',
+      ambientType: 'grid',
+      bossName: 'CYBER TITAN OVERLORD',
+      bossColor: '#ff0055',
+      enemyTheme: 'cyber'
+    },
+    {
+      id: 'map_graveyard',
+      name: 'Cimetière Fantôme (Neon Crypt)',
+      subtitle: 'Nécropole Hantée & Brume Spectrale',
+      icon: '👻',
+      price: 1500,
+      unlocked: false,
+      description: 'Crypte néon hantée par des spectres spectraux rapides. Brume violette d’éther et âmes holographiques errantes.',
+      bgColor: '#090414',
+      gridColor: '#1d0c2e',
+      gridHighlight: '#c840ff',
+      borderColor: '#c840ff',
+      particleColor: '#c840ff',
+      ambientType: 'spectral_mist',
+      bossName: 'SPECTRE ARCHON PRIMORDIAL',
+      bossColor: '#c840ff',
+      enemyTheme: 'phantom'
+    },
+    {
+      id: 'map_biolab',
+      name: 'Laboratoire Zombie (Bio-Hazard)',
+      subtitle: 'Quarantaine Oméga & Toxines',
+      icon: '☣️',
+      price: 3000,
+      unlocked: false,
+      description: 'Complexe biologique abandonné inondé de liquide radioactif. Zombies mutants, bio-chiens et cuves de mutagène.',
+      bgColor: '#030e06',
+      gridColor: '#0c2614',
+      gridHighlight: '#39ff14',
+      borderColor: '#39ff14',
+      particleColor: '#39ff14',
+      ambientType: 'toxic_sludge',
+      bossName: 'ABOMINATION CHIMÉRIQUE ZOMBIE',
+      bossColor: '#39ff14',
+      enemyTheme: 'zombie'
+    },
+    {
+      id: 'map_volcano',
+      name: 'Fonderie des Ogres (Cyber Wastes)',
+      subtitle: 'Terres Brûlées & Magma Volcanique',
+      icon: '🌋',
+      price: 5000,
+      unlocked: false,
+      description: 'Terres industrielles ravagées entourées de lave en fusion. Ogres blindés dévastateurs et titans berserkers.',
+      bgColor: '#140502',
+      gridColor: '#2e0e06',
+      gridHighlight: '#ff4400',
+      borderColor: '#ff3300',
+      particleColor: '#ff5500',
+      ambientType: 'magma_embers',
+      bossName: 'GRAND WARLORD OGRE BROYEUR',
+      bossColor: '#ff3300',
+      enemyTheme: 'ogre'
     }
   ],
 

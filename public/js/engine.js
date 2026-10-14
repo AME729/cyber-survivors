@@ -24,8 +24,10 @@ class _GameEngine {
     this.effects = []; // Lightning arcs, shockwaves
 
     // Camera & Shake
-    this.camera = { x: 0, y: 0 };
+    this.camera = { x: 0, y: 0, zoom: 1.0 };
+    this.customZoom = null;
     this.shakeIntensity = 0;
+    this.currentMap = null;
 
     // Inputs
     this.input = {
@@ -208,6 +210,28 @@ class _GameEngine {
     window.addEventListener('touchcancel', onTouchEnd, { passive: false });
   }
 
+  getEffectiveZoom() {
+    if (this.customZoom) return this.customZoom;
+    // On mobile (< 768px), zoom out by ~40% so map and enemies are wide and clear
+    if (window.innerWidth < 768) {
+      return 0.62;
+    }
+    return 1.0;
+  }
+
+  cycleZoom() {
+    const levels = [0.6, 0.8, 1.0];
+    const cur = this.getEffectiveZoom();
+    let next = 0.6;
+    if (cur <= 0.65) next = 0.8;
+    else if (cur <= 0.85) next = 1.0;
+    else next = 0.6;
+    this.customZoom = next;
+    const btn = document.getElementById('btn-hud-zoom');
+    if (btn) btn.textContent = `🔍 ${next}x`;
+    return next;
+  }
+
   start(characterId) {
     this.resizeCanvas();
     this.player = new Player(characterId);
@@ -224,19 +248,27 @@ class _GameEngine {
     this.isPaused = false;
     MonetizationManager.reviveUsedThisRun = false;
 
+    // Load active map configuration
+    const mapId = MetaManager.data.selectedMap || 'map_tokyo';
+    this.currentMap = CONFIG.MAPS.find(m => m.id === mapId) || CONFIG.MAPS[0];
+
     // Reset inputs
     this.input.up = false;
     this.input.down = false;
     this.input.left = false;
     this.input.right = false;
 
-    // Spawn 4 initial enemies near player (320px away) so action starts immediately
+    // Reset zoom display button
+    const zoomBtn = document.getElementById('btn-hud-zoom');
+    if (zoomBtn) zoomBtn.textContent = `🔍 ${this.getEffectiveZoom()}x`;
+
+    // Spawn 4 initial enemies near player using active map theme
     for (let i = 0; i < 4; i++) {
       const angle = (i * Math.PI * 2) / 4 + 0.3;
-      const dist = 320;
+      const dist = 380;
       const ex = this.player.x + Math.cos(angle) * dist;
       const ey = this.player.y + Math.sin(angle) * dist;
-      this.enemies.push(new Enemy('drone', ex, ey));
+      this.enemies.push(new Enemy('drone', ex, ey, this.currentMap.enemyTheme));
     }
 
     SoundSystem.resume();
@@ -271,9 +303,13 @@ class _GameEngine {
     // Update Player
     this.player.update(dt, this.input, this);
 
-    // Camera following player in logical CSS pixels
-    this.camera.x = this.player.x - window.innerWidth / 2;
-    this.camera.y = this.player.y - window.innerHeight / 2;
+    // Dynamic Camera Zoom calculation & centering
+    const zoom = this.getEffectiveZoom();
+    this.camera.zoom = zoom;
+    const viewW = window.innerWidth / zoom;
+    const viewH = window.innerHeight / zoom;
+    this.camera.x = this.player.x - viewW / 2;
+    this.camera.y = this.player.y - viewH / 2;
 
     // Screen Shake decay
     if (this.shakeIntensity > 0) {
@@ -378,6 +414,10 @@ class _GameEngine {
     if (activeBoss) {
       if (bossContainer) {
         bossContainer.classList.remove('hidden');
+        const bossTitle = bossContainer.querySelector('.hud-boss-title');
+        if (bossTitle) {
+          bossTitle.textContent = `⚠️ ALERTE : ${activeBoss.customName || activeBoss.conf.name} ⚠️`;
+        }
         const bossBar = document.getElementById('hud-boss-hp-bar');
         const bossText = document.getElementById('hud-boss-hp-text');
         const ratio = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100);
@@ -413,11 +453,13 @@ class _GameEngine {
 
   spawnEnemyAtEdge(typeKey) {
     const angle = Math.random() * Math.PI * 2;
-    const viewDist = Math.max(this.canvas.width || 800, this.canvas.height || 600) * 0.45;
-    const spawnDist = Math.max(380, Math.min(560, viewDist));
+    const zoom = this.camera.zoom || 1.0;
+    const spawnDist = Math.max(480, Math.min(850, (Math.max(window.innerWidth, window.innerHeight) / zoom) * 0.58));
     const x = Math.max(50, Math.min(CONFIG.WORLD_WIDTH - 50, this.player.x + Math.cos(angle) * spawnDist));
     const y = Math.max(50, Math.min(CONFIG.WORLD_HEIGHT - 50, this.player.y + Math.sin(angle) * spawnDist));
-    this.enemies.push(new Enemy(typeKey, x, y));
+    const theme = (this.currentMap && this.currentMap.enemyTheme) || 'cyber';
+    const bossName = (this.currentMap && this.currentMap.bossName) || 'CYBER TITAN OVERLORD';
+    this.enemies.push(new Enemy(typeKey, x, y, theme, typeKey === 'boss_mech' ? bossName : null));
   }
 
   getNearestEnemies(x, y, count = 1, maxDist = 600) {
@@ -520,15 +562,17 @@ class _GameEngine {
     if (!this.ctx) return;
     const ctx = this.ctx;
     const dpr = this.dpr || 1;
+    const zoom = this.camera.zoom || 1.0;
+    const mapConf = this.currentMap || CONFIG.MAPS[0];
 
-    // Clear Screen across full physical buffer
+    // Clear Screen across full physical buffer with active Map theme color
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = '#080a10';
+    ctx.fillStyle = mapConf.bgColor || '#080a10';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     ctx.save();
-    // Scale context so everything draws at high-DPI
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Scale context with High-DPI and Camera Zoom
+    ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, 0, 0);
 
     // Camera offset with Screen Shake
     let camX = this.camera.x;
@@ -540,13 +584,13 @@ class _GameEngine {
     ctx.translate(-camX, -camY);
 
     // Draw Cyber Arena Grid
-    this.drawGrid(ctx);
+    this.drawGrid(ctx, mapConf);
 
-    // Draw World Arena Boundaries
-    ctx.strokeStyle = '#ff0055';
+    // Draw World Arena Boundaries in Map theme color
+    ctx.strokeStyle = mapConf.borderColor || '#ff0055';
     ctx.lineWidth = 4;
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#ff0055';
+    ctx.shadowColor = mapConf.borderColor || '#ff0055';
     ctx.strokeRect(0, 0, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
     ctx.shadowBlur = 0;
 
@@ -575,7 +619,6 @@ class _GameEngine {
         ctx.shadowColor = '#ff00ff';
         ctx.beginPath();
         ctx.moveTo(eff.x1, eff.y1);
-        // Jagged line
         const midX = (eff.x1 + eff.x2) / 2 + (Math.random() * 30 - 15);
         const midY = (eff.y1 + eff.y2) / 2 + (Math.random() * 30 - 15);
         ctx.lineTo(midX, midY);
@@ -602,8 +645,125 @@ class _GameEngine {
 
     ctx.restore();
 
+    // Render Off-screen Threat Radar Indicators on screen borders
+    this.drawThreatIndicators(ctx, dpr);
+
     // Render Minimap Radar
     this.renderRadar();
+  }
+
+  drawThreatIndicators(ctx, dpr) {
+    if (!this.player) return;
+    const zoom = this.camera.zoom || 1.0;
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    const margin = 32;
+
+    const left = this.camera.x;
+    const right = this.camera.x + screenW / zoom;
+    const top = this.camera.y;
+    const bottom = this.camera.y + screenH / zoom;
+
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    this.enemies.forEach(e => {
+      if (e.isDead) return;
+      const isOffScreen = (e.x < left || e.x > right || e.y < top || e.y > bottom);
+      if (!isOffScreen) return;
+
+      const dx = e.x - this.player.x;
+      const dy = e.y - this.player.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 1800) return;
+
+      const angle = Math.atan2(dy, dx);
+      const cx = screenW / 2;
+      const cy = screenH / 2;
+
+      // Project angle to screen perimeter
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+      const halfW = (screenW / 2) - margin;
+      const halfH = (screenH / 2) - margin;
+
+      let edgeX = cx + (cosA > 0 ? halfW : -halfW);
+      let edgeY = cy + Math.tan(angle) * (cosA > 0 ? halfW : -halfW);
+
+      if (edgeY < margin || edgeY > screenH - margin) {
+        edgeY = cy + (sinA > 0 ? halfH : -halfH);
+        edgeX = cx + ((sinA > 0 ? halfH : -halfH) / Math.tan(angle));
+      }
+
+      ctx.save();
+      ctx.translate(edgeX, edgeY);
+      ctx.rotate(angle);
+
+      if (e.isBoss) {
+        // Red Pulsing Boss Threat Arrow
+        ctx.fillStyle = '#ff0033';
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = '#ff0033';
+        ctx.beginPath();
+        ctx.moveTo(14, 0);
+        ctx.lineTo(-8, -10);
+        ctx.lineTo(-2, 0);
+        ctx.lineTo(-8, 10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.rotate(-angle);
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ff3366';
+        ctx.fillText(`BOSS ${Math.round(dist)}m`, 0, -14);
+      } else if (e.conf.shape === 'hexagon' || Math.random() < 0.25) {
+        // Elite or mob threat indicator
+        ctx.fillStyle = e.color || '#ff0055';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = e.color || '#ff0055';
+        ctx.beginPath();
+        ctx.moveTo(10, 0);
+        ctx.lineTo(-6, -6);
+        ctx.lineTo(-2, 0);
+        ctx.lineTo(-6, 6);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+
+    ctx.restore();
+  }
+
+  drawGrid(ctx, mapConf) {
+    const zoom = this.camera.zoom || 1.0;
+    const viewW = window.innerWidth / zoom;
+    const viewH = window.innerHeight / zoom;
+    const gridSize = 100;
+    const startX = Math.floor(this.camera.x / gridSize) * gridSize;
+    const endX = startX + viewW + gridSize * 2;
+    const startY = Math.floor(this.camera.y / gridSize) * gridSize;
+    const endY = startY + viewH + gridSize * 2;
+
+    ctx.strokeStyle = (mapConf && mapConf.gridColor) || '#121828';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+
+    for (let x = startX; x <= endX; x += gridSize) {
+      if (x >= 0 && x <= CONFIG.WORLD_WIDTH) {
+        ctx.moveTo(x, Math.max(0, startY));
+        ctx.lineTo(x, Math.min(CONFIG.WORLD_HEIGHT, endY));
+      }
+    }
+
+    for (let y = startY; y <= endY; y += gridSize) {
+      if (y >= 0 && y <= CONFIG.WORLD_HEIGHT) {
+        ctx.moveTo(Math.max(0, startX), y);
+        ctx.lineTo(Math.min(CONFIG.WORLD_WIDTH, endX), y);
+      }
+    }
+    ctx.stroke();
   }
 
   renderRadar() {
@@ -683,33 +843,6 @@ class _GameEngine {
     rCtx.shadowBlur = 0;
 
     rCtx.restore();
-  }
-
-  drawGrid(ctx) {
-    const gridSize = 100;
-    const startX = Math.floor(this.camera.x / gridSize) * gridSize;
-    const endX = startX + window.innerWidth + gridSize;
-    const startY = Math.floor(this.camera.y / gridSize) * gridSize;
-    const endY = startY + window.innerHeight + gridSize;
-
-    ctx.strokeStyle = '#121828';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-
-    for (let x = startX; x <= endX; x += gridSize) {
-      if (x >= 0 && x <= CONFIG.WORLD_WIDTH) {
-        ctx.moveTo(x, Math.max(0, startY));
-        ctx.lineTo(x, Math.min(CONFIG.WORLD_HEIGHT, endY));
-      }
-    }
-
-    for (let y = startY; y <= endY; y += gridSize) {
-      if (y >= 0 && y <= CONFIG.WORLD_HEIGHT) {
-        ctx.moveTo(Math.max(0, startX), y);
-        ctx.lineTo(Math.min(CONFIG.WORLD_WIDTH, endX), y);
-      }
-    }
-    ctx.stroke();
   }
 }
 
